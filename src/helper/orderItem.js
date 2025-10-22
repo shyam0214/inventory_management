@@ -135,11 +135,9 @@ const recalculateStatusesAfterRemoval = async (removedItem) => {
 
   const statusUpdates = [];
 
-  // If the removed item was confirmed, update unavailable-until items
   if (removedItem.oi_status === "confirmed") {
     for (const item of conflictingItems) {
       if (item.oi_status === "unavailable-until") {
-        // Check if there are other confirmed orders that conflict
         const otherConfirmedItems = await OrderItem.find({
           oi_inventory_fk_inventory_id: removedItem.oi_inventory_fk_inventory_id,
           oi_order_fk_order_id: { $ne: item.oi_order_fk_order_id, $ne: removedItem.oi_order_fk_order_id },
@@ -175,9 +173,7 @@ const recalculateStatusesAfterRemoval = async (removedItem) => {
       }
     }
   } 
-  // If the removed item was on-hold or on-hold-request
   else if (removedItem.oi_status === "on-hold" || removedItem.oi_status === "on-hold-request") {
-    // Promote second-hold to on-hold
     const secondHoldItems = conflictingItems.filter(
       item => item.oi_status === "2nd-hold" || item.oi_status === "2nd-hold-request"
     );
@@ -189,7 +185,6 @@ const recalculateStatusesAfterRemoval = async (removedItem) => {
         newStatus: itemToPromote.oi_status === "2nd-hold" ? "on-hold" : "on-hold-request"
       });
       
-      // Promote third-hold to second-hold
       const thirdHoldItems = conflictingItems.filter(
         item => item.oi_status === "3rd-hold" || item.oi_status === "3rd-hold-request"
       );
@@ -203,9 +198,7 @@ const recalculateStatusesAfterRemoval = async (removedItem) => {
       }
     }
   }
-  // If the removed item was second-hold or second-hold-request
   else if (removedItem.oi_status === "2nd-hold" || removedItem.oi_status === "2nd-hold-request") {
-    // Promote third-hold to second-hold
     const thirdHoldItems = conflictingItems.filter(
       item => item.oi_status === "3rd-hold" || item.oi_status === "3rd-hold-request"
     );
